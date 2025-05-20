@@ -6,9 +6,23 @@ let highlightedItems = [];
 // Initialize the IFC.js viewer
 function initViewer(ifcData) {
     try {
+        // Check if THREE.js is available
+        if (typeof THREE === 'undefined') {
+            console.error("THREE.js is not available");
+            fallbackToSimpleViewer(ifcData);
+            return;
+        }
+        
         // Clear any existing viewer
         const viewerContainer = document.getElementById('viewer');
         viewerContainer.innerHTML = '';
+        
+        // Check if IfcViewerAPI is available
+        if (typeof IfcViewerAPI === 'undefined') {
+            console.error("IfcViewerAPI is not available");
+            fallbackToSimpleViewer(ifcData);
+            return;
+        }
         
         // Create the viewer
         const container = document.getElementById('viewer');
@@ -364,4 +378,80 @@ function focusOnObject(object) {
         position.z,
         true // Enable animation
     );
+}
+
+// Fallback to a simple viewer when 3D viewer fails
+function fallbackToSimpleViewer(ifcData) {
+    console.log("Using fallback viewer");
+    
+    // Hide the placeholder message
+    const viewerPlaceholder = document.getElementById('viewerPlaceholder');
+    viewerPlaceholder.classList.add('hidden');
+    
+    // Get container and clear it
+    const viewerContainer = document.getElementById('viewer');
+    viewerContainer.innerHTML = '';
+    viewerContainer.classList.remove('hidden');
+    
+    // Show a simple visualization of the building
+    const fallbackDiv = document.createElement('div');
+    fallbackDiv.className = 'w-full h-full bg-slate-100 dark:bg-slate-700 rounded-lg p-4 flex flex-col items-center justify-center';
+    
+    // Add project name
+    const projectName = document.createElement('h3');
+    projectName.className = 'text-xl font-bold mb-4';
+    projectName.textContent = ifcData.project_name || 'Building Model';
+    fallbackDiv.appendChild(projectName);
+    
+    // Add door information
+    const doorInfo = document.createElement('div');
+    doorInfo.className = 'w-full max-w-md bg-white dark:bg-slate-800 rounded-lg shadow p-4 mb-4';
+    
+    const doorTitle = document.createElement('h4');
+    doorTitle.className = 'font-bold mb-2';
+    doorTitle.textContent = `Doors Found: ${ifcData.door_count || 0}`;
+    doorInfo.appendChild(doorTitle);
+    
+    // Create a simple list of doors
+    if (ifcData.doors && ifcData.doors.length > 0) {
+        const doorList = document.createElement('ul');
+        doorList.className = 'space-y-2';
+        
+        ifcData.doors.forEach(door => {
+            const doorItem = document.createElement('li');
+            doorItem.className = 'flex items-center justify-between';
+            
+            const doorName = document.createElement('span');
+            doorName.textContent = door.name || `Door ${door.id}`;
+            
+            const doorWidth = document.createElement('span');
+            doorWidth.className = door.width >= 32 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+            doorWidth.textContent = door.width ? `${door.width} inches` : 'Unknown width';
+            
+            doorItem.appendChild(doorName);
+            doorItem.appendChild(doorWidth);
+            doorList.appendChild(doorItem);
+        });
+        
+        doorInfo.appendChild(doorList);
+    } else {
+        const noDoors = document.createElement('p');
+        noDoors.className = 'text-slate-500 dark:text-slate-400';
+        noDoors.textContent = 'No door information available';
+        doorInfo.appendChild(noDoors);
+    }
+    
+    fallbackDiv.appendChild(doorInfo);
+    
+    // Add help message
+    const helpMessage = document.createElement('p');
+    helpMessage.className = 'text-sm text-slate-500 dark:text-slate-400 text-center';
+    helpMessage.textContent = 'Using simplified viewer mode. The full 3D viewer requires additional browser support.';
+    fallbackDiv.appendChild(helpMessage);
+    
+    // Add to container
+    viewerContainer.appendChild(fallbackDiv);
+    
+    // Show viewer controls
+    document.getElementById('viewerControls').classList.remove('hidden');
 }
