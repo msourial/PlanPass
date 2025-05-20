@@ -1,0 +1,24 @@
+Texas Building Code - Door Width Requirements
+
+Section 1010.1.1 Size of Doors
+The minimum width of each door opening shall be sufficient for the occupant load thereof and shall provide a clear width of 32 inches (813 mm). Clear openings of doorways with swinging doors shall be measured between the face of the door and the stop, with the door open 90 degrees.
+
+Exceptions:
+1. The minimum and maximum width shall not apply to door openings that are not part of the required means of egress in Group R-2 and R-3 occupancies.
+2. Door openings to resident sleeping units in Group I-3 occupancies shall have a clear width of not less than 28 inches (711 mm).
+3. Door openings to storage closets less than 10 square feet (0.93 m²) in area shall not be limited by the minimum width.
+
+Section 1010.1.1.1 Projections into clear width
+There shall not be projections into the required clear width lower than 34 inches (864 mm) above the floor or ground. Projections into the clear opening width between 34 inches (864 mm) and 80 inches (2032 mm) above the floor or ground shall not exceed 4 inches (102 mm).
+
+1010.1.2 Door Swing
+Egress doors shall be of the pivoted or side-hinged swinging type.
+
+1010.1.3 Door Opening Force
+The force for pushing or pulling open interior swinging egress doors, other than fire doors, shall not exceed 5 pounds (22 N).
+
+Texas Accessibility Standards (TAS)
+Doors, Gates, and Turnstiles
+404.2.3 Clear Width. Door openings shall provide a clear width of 32 inches (815 mm) minimum. Clear openings of doorways with swinging doors shall be measured between the face of the door and the stop, with the door open.
+
+404.2.4 Maneuvering Clearances. Minimum maneuvering clearances at doors and gates shall comply with requirements. Maneuvering clearances shall extend the full width of the doorway and the required latch side or hinge side clearance.
