@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuildSat - Building Compliance Analysis</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/css/tailwind.config.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    <!-- IFC.js for 3D visualization -->
+    <script src="https://unpkg.com/web-ifc-viewer@1.0.213/dist/bundle.js"></script>
+    <script src="https://unpkg.com/web-ifc@0.0.43/dist/web-ifc-api.js"></script>
+    
+    <!-- jsPDF for report generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- CryptoJS for hash verification -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    <header class="bg-white dark:bg-slate-800 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center">
+                <img src="/static/images/buildsat-logo.svg" alt="BuildSat Logo" class="h-10 mr-3">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 text-transparent bg-clip-text">BuildSat</h1>
+            </div>
+            <div class="flex items-center">
+                <button id="darkModeToggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="bg-white dark:bg-slate-800 mt-10 py-6 border-t border-slate-200 dark:border-slate-700">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2023 BuildSat - Building Compliance Analysis Tool</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                Helping architects and builders ensure code compliance
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 hidden flex items-center justify-center">
+        <div class="text-center">
+            <div class="animation-container mb-6">
+                <svg id="constructionHelmet" class="w-32 h-32 mx-auto" viewBox="0 0 100 100"></svg>
+            </div>
+            <h3 class="text-white text-xl font-bold mb-2">Analyzing...</h3>
+            <p class="text-slate-300" id="loadingMessage">Processing your files and checking compliance</p>
+        </div>
+    </div>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div id="flashMessages" class="fixed top-4 right-4 z-50">
+                {% for category, message in messages %}
+                    <div class="flash-message bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-lg shadow-lg px-4 py-3 mb-3 flex items-center {% if category == 'error' %}border-l-4 border-red-500{% else %}border-l-4 border-blue-500{% endif %}">
+                        <i class="fas {% if category == 'error' %}fa-exclamation-circle text-red-500{% else %}fa-info-circle text-blue-500{% endif %} mr-3"></i>
+                        <span>{{ message }}</span>
+                        <button class="ml-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" onclick="this.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Dark mode toggle script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            
+            // Check for saved theme preference or use device preference
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            // Toggle dark/light mode
+            darkModeToggle.addEventListener('click', function() {
+                document.documentElement.classList.toggle('dark');
+                
+                // Save preference
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            
+            // Auto-hide flash messages
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                setTimeout(() => {
+                    message.classList.add('opacity-0');
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+    </script>
+    
+    <!-- Load custom scripts -->
+    <script src="/static/js/animation.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
