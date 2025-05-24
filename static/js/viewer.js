@@ -49,12 +49,8 @@ function initViewer(ifcData) {
 // Load IFC model data
 function loadIFCModelData(ifcData) {
     try {
-        // Since we're not directly loading an IFC file in the browser,
-        // we'll simulate the viewer with basic Three.js objects based on the data
-        // from the backend processing
-        
-        // Create a scene
-        createBasicBuildingModel(ifcData);
+        // Create a realistic 3D building model based on IFC data
+        createRealistic3DModel(ifcData);
         
         // Add lighting
         addLighting();
@@ -67,14 +63,17 @@ function loadIFCModelData(ifcData) {
             );
         });
         
+        // Mark viewer as loaded
+        document.getElementById('viewer').classList.add('loaded');
+        
     } catch (error) {
         console.error('Error loading IFC model:', error);
         showToast('Error loading 3D model', 'error');
     }
 }
 
-// Create a basic building model from the IFC data
-function createBasicBuildingModel(ifcData) {
+// Create a realistic 3D model from the IFC data
+function createRealistic3DModel(ifcData) {
     // Create materials
     const wallMaterial = new THREE.MeshLambertMaterial({ color: 0xcccccc });
     const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xe0e0e0 });

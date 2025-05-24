@@ -4,9 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const ifcDropzone = document.getElementById('ifcDropzone');
     const ifcFileInput = document.getElementById('ifcFileInput');
     const ifcFileNameDisplay = document.getElementById('ifcFileNameDisplay');
-    const pdfDropzone = document.getElementById('pdfDropzone');
-    const pdfFileInput = document.getElementById('pdfFileInput');
-    const pdfFileNameDisplay = document.getElementById('pdfFileNameDisplay');
+    const zipCodeInput = document.getElementById('zipCodeInput');
+    const zipCodeStatus = document.getElementById('zipCodeStatus');
+    const zipCodeInfo = document.getElementById('zipCodeInfo');
     const checkComplianceBtn = document.getElementById('checkComplianceBtn');
     
     // Viewer elements
@@ -35,28 +35,37 @@ document.addEventListener('DOMContentLoaded', function() {
         handleFileSelection(e, ifcFileNameDisplay, 'fas fa-building', 'ifc');
     });
     
-    // Handle PDF file input
-    pdfDropzone.addEventListener('click', () => {
-        pdfFileInput.click();
-    });
-    
-    pdfFileInput.addEventListener('change', (e) => {
-        handleFileSelection(e, pdfFileNameDisplay, 'fas fa-file-pdf', 'pdf');
+    // Handle zip code input validation
+    zipCodeInput.addEventListener('input', function(e) {
+        const zipCode = e.target.value.trim();
+        
+        if (zipCode.length === 5 && /^\d{5}$/.test(zipCode)) {
+            validateZipCode(zipCode);
+        } else if (zipCode.length > 0) {
+            showZipCodeStatus(false, 'Please enter a 5-digit zip code');
+        } else {
+            hideZipCodeStatus();
+        }
+        
+        updateSubmitButtonState();
     });
     
     // Handle drag and drop for IFC
     setupDragAndDrop(ifcDropzone, ifcFileInput, ifcFileNameDisplay, 'fas fa-building', 'ifc');
-    
-    // Handle drag and drop for PDF
-    setupDragAndDrop(pdfDropzone, pdfFileInput, pdfFileNameDisplay, 'fas fa-file-pdf', 'pdf');
     
     // Handle form submission
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
         // Validate form
-        if (!ifcFileInput.files.length || !pdfFileInput.files.length) {
-            showToast('Please upload both IFC and PDF files', 'error');
+        const zipCode = zipCodeInput.value.trim();
+        if (!ifcFileInput.files.length) {
+            showToast('Please upload an IFC file', 'error');
+            return;
+        }
+        
+        if (!zipCode || !/^\d{5}$/.test(zipCode)) {
+            showToast('Please enter a valid 5-digit Texas zip code', 'error');
             return;
         }
         
@@ -66,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Prepare form data
         const formData = new FormData();
         formData.append('ifc_file', ifcFileInput.files[0]);
-        formData.append('code_pdf', pdfFileInput.files[0]);
+        formData.append('zip_code', zipCode);
         
         // Send request to server
         fetch('/upload', {
@@ -216,11 +225,51 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update submit button state
     function updateSubmitButtonState() {
-        if (ifcFileInput.files.length && pdfFileInput.files.length) {
+        const zipCode = zipCodeInput.value.trim();
+        if (ifcFileInput.files.length && zipCode && /^\d{5}$/.test(zipCode)) {
             checkComplianceBtn.disabled = false;
         } else {
             checkComplianceBtn.disabled = true;
         }
+    }
+    
+    // Validate zip code with server
+    function validateZipCode(zipCode) {
+        fetch('/validate-zip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ zip_code: zipCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.zip_info) {
+                if (data.zip_info.valid) {
+                    showZipCodeStatus(true, data.zip_info.message);
+                } else {
+                    showZipCodeStatus(false, data.zip_info.message);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error validating zip code:', error);
+            showZipCodeStatus(false, 'Error validating zip code');
+        });
+    }
+    
+    // Show zip code validation status
+    function showZipCodeStatus(isValid, message) {
+        zipCodeStatus.classList.remove('hidden');
+        zipCodeInfo.textContent = message;
+        zipCodeInfo.className = isValid ? 
+            'text-green-600 dark:text-green-400' : 
+            'text-red-600 dark:text-red-400';
+    }
+    
+    // Hide zip code status
+    function hideZipCodeStatus() {
+        zipCodeStatus.classList.add('hidden');
     }
     
     // Format file size
