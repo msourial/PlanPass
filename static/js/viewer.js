@@ -5,81 +5,9 @@ let highlightedItems = [];
 
 // Initialize the 3D viewer
 function initViewer(ifcData) {
-    try {
-        // Check if THREE.js is available
-        if (typeof THREE === 'undefined') {
-            console.error("THREE.js is not available");
-            fallbackToSimpleViewer(ifcData);
-            return;
-        }
-        
-        // Clear any existing viewer
-        const viewerContainer = document.getElementById('viewer');
-        viewerContainer.innerHTML = '';
-        
-        // Create a THREE.js scene directly
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf5f5f5);
-        
-        // Create camera
-        const camera = new THREE.PerspectiveCamera(75, viewerContainer.clientWidth / viewerContainer.clientHeight, 0.1, 1000);
-        camera.position.set(10, 10, 10);
-        camera.lookAt(0, 0, 0);
-        
-        // Create renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        viewerContainer.appendChild(renderer.domElement);
-        
-        // Add orbit controls if available
-        let controls = null;
-        if (typeof THREE.OrbitControls !== 'undefined') {
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.25;
-        }
-        
-        // Store in global viewer object
-        viewer = {
-            scene: scene,
-            camera: camera,
-            renderer: renderer,
-            controls: controls
-        };
-        
-        // Load the IFC model data
-        loadIFCModelData(ifcData);
-        
-        // Setup animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            if (controls) {
-                controls.update();
-            }
-            
-            renderer.render(scene, camera);
-        }
-        animate();
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = viewerContainer.clientWidth / viewerContainer.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
-        });
-        
-        // Setup viewer controls
-        setupViewerControls();
-        
-    } catch (error) {
-        console.error('Error initializing viewer:', error);
-        fallbackToSimpleViewer(ifcData);
-    }
+    console.log("Initializing viewer with data:", ifcData);
     
-    // Skip complex 3D and use simple building view
+    // Use simple building view directly - skip complex 3D
     createSimpleBuildingView(ifcData);
 }
 
