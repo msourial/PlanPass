@@ -78,6 +78,9 @@ function initViewer(ifcData) {
         console.error('Error initializing viewer:', error);
         fallbackToSimpleViewer(ifcData);
     }
+    
+    // Always use fallback viewer for now since 3D viewer has issues
+    fallbackToSimpleViewer(ifcData);
 }
 
 // Load IFC model data
