@@ -7,8 +7,77 @@ let highlightedItems = [];
 function initViewer(ifcData) {
     console.log("Initializing viewer with data:", ifcData);
     
-    // Use simple building view directly - skip complex 3D
-    createSimpleBuildingView(ifcData);
+    // Force show building data immediately
+    const viewerContainer = document.getElementById('viewer');
+    const viewerPlaceholder = document.getElementById('viewerPlaceholder');
+    
+    // Hide placeholder completely
+    if (viewerPlaceholder) {
+        viewerPlaceholder.style.display = 'none';
+    }
+    
+    // Extract door data
+    const doors = ifcData?.doors || [];
+    const totalDoors = doors.length;
+    const compliantDoors = doors.filter(d => d.is_compliant).length;
+    const nonCompliantDoors = totalDoors - compliantDoors;
+    
+    // Create the building visualization directly
+    viewerContainer.innerHTML = `
+        <div style="height: 100%; background: white; padding: 20px; display: flex; flex-direction: column; font-family: Arial, sans-serif;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #333; margin-bottom: 20px;">🏢 BuildSat Analysis Complete</h2>
+                
+                <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px;">
+                    <div style="background: #3b82f6; color: white; padding: 20px; border-radius: 10px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 32px; font-weight: bold;">${totalDoors}</div>
+                        <div style="font-size: 14px;">Total Doors</div>
+                    </div>
+                    <div style="background: #10b981; color: white; padding: 20px; border-radius: 10px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 32px; font-weight: bold;">${compliantDoors}</div>
+                        <div style="font-size: 14px;">Compliant</div>
+                    </div>
+                    <div style="background: #ef4444; color: white; padding: 20px; border-radius: 10px; text-align: center; min-width: 120px;">
+                        <div style="font-size: 32px; font-weight: bold;">${nonCompliantDoors}</div>
+                        <div style="font-size: 14px;">Non-compliant</div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px; margin: 20px auto; max-width: 600px;">
+                    <h3 style="margin-bottom: 20px; color: #374151;">Building Floor Plan</h3>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                        ${doors.slice(0, 16).map((door, index) => {
+                            const widthInches = Math.round((door.width || 0.762) * 39.3701); // Convert meters to inches
+                            const isCompliant = widthInches >= 32;
+                            
+                            return `
+                                <div style="background: ${isCompliant ? '#10b981' : '#ef4444'}; color: white; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer;" 
+                                     title="Door ${door.id}: ${widthInches} inches">
+                                    ${widthInches}"
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div style="display: flex; justify-content: center; gap: 30px; font-size: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; background: #10b981; border-radius: 4px;"></div>
+                            <span>Compliant (≥32")</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 20px; height: 20px; background: #ef4444; border-radius: 4px;"></div>
+                            <span>Non-compliant (<32")</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 20px;">
+                    <strong>Analysis Summary:</strong> Your IFC model has been processed successfully. 
+                    ${nonCompliantDoors > 0 ? `${nonCompliantDoors} doors need attention to meet Texas building codes.` : 'All doors meet compliance requirements!'}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // Load IFC model data
