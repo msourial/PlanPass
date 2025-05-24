@@ -416,74 +416,156 @@ function focusOnObject(object) {
 function fallbackToSimpleViewer(ifcData) {
     console.log("Using fallback viewer");
     
-    // Hide the placeholder message
-    const viewerPlaceholder = document.getElementById('viewerPlaceholder');
-    viewerPlaceholder.classList.add('hidden');
-    
-    // Get container and clear it
-    const viewerContainer = document.getElementById('viewer');
-    viewerContainer.innerHTML = '';
-    viewerContainer.classList.remove('hidden');
-    
-    // Show a simple visualization of the building
-    const fallbackDiv = document.createElement('div');
-    fallbackDiv.className = 'w-full h-full bg-slate-100 dark:bg-slate-700 rounded-lg p-4 flex flex-col items-center justify-center';
-    
-    // Add project name
-    const projectName = document.createElement('h3');
-    projectName.className = 'text-xl font-bold mb-4';
-    projectName.textContent = ifcData.project_name || 'Building Model';
-    fallbackDiv.appendChild(projectName);
-    
-    // Add door information
-    const doorInfo = document.createElement('div');
-    doorInfo.className = 'w-full max-w-md bg-white dark:bg-slate-800 rounded-lg shadow p-4 mb-4';
-    
-    const doorTitle = document.createElement('h4');
-    doorTitle.className = 'font-bold mb-2';
-    doorTitle.textContent = `Doors Found: ${ifcData.door_count || 0}`;
-    doorInfo.appendChild(doorTitle);
-    
-    // Create a simple list of doors
-    if (ifcData.doors && ifcData.doors.length > 0) {
-        const doorList = document.createElement('ul');
-        doorList.className = 'space-y-2';
+    try {
+        // Hide the placeholder message
+        const viewerPlaceholder = document.getElementById('viewerPlaceholder');
+        if (viewerPlaceholder) viewerPlaceholder.classList.add('hidden');
         
-        ifcData.doors.forEach(door => {
-            const doorItem = document.createElement('li');
-            doorItem.className = 'flex items-center justify-between';
+        // Get container and clear it
+        const viewerContainer = document.getElementById('viewer');
+        viewerContainer.innerHTML = '';
+        viewerContainer.classList.remove('hidden');
+        
+        // Create a canvas for drawing the building
+        const canvas = document.createElement('canvas');
+        canvas.width = viewerContainer.clientWidth;
+        canvas.height = viewerContainer.clientHeight;
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.background = '#f8f9fa';
+        viewerContainer.appendChild(canvas);
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Draw building outline
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const buildingWidth = Math.min(canvas.width, canvas.height) * 0.6;
+        const buildingHeight = buildingWidth * 0.8;
+        
+        // Draw building rectangle
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(
+            centerX - buildingWidth/2, 
+            centerY - buildingHeight/2, 
+            buildingWidth, 
+            buildingHeight
+        );
+        
+        // Fill building
+        ctx.fillStyle = '#e5e7eb';
+        ctx.fillRect(
+            centerX - buildingWidth/2, 
+            centerY - buildingHeight/2, 
+            buildingWidth, 
+            buildingHeight
+        );
+        
+        // Draw doors
+        if (ifcData && ifcData.doors && ifcData.doors.length > 0) {
+            const doorWidth = buildingWidth * 0.08;
+            const doorHeight = buildingHeight * 0.15;
             
-            const doorName = document.createElement('span');
-            doorName.textContent = door.name || `Door ${door.id}`;
-            
-            const doorWidth = document.createElement('span');
-            doorWidth.className = door.width >= 32 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
-            doorWidth.textContent = door.width ? `${door.width} inches` : 'Unknown width';
-            
-            doorItem.appendChild(doorName);
-            doorItem.appendChild(doorWidth);
-            doorList.appendChild(doorItem);
+            ifcData.doors.forEach((door, index) => {
+                // Position doors around the perimeter
+                let doorX, doorY;
+                const side = index % 4;
+                const offset = (index / 4) * (buildingWidth / Math.ceil(ifcData.doors.length / 4));
+                
+                switch(side) {
+                    case 0: // Top wall
+                        doorX = centerX - buildingWidth/2 + offset;
+                        doorY = centerY - buildingHeight/2;
+                        break;
+                    case 1: // Right wall
+                        doorX = centerX + buildingWidth/2 - doorWidth;
+                        doorY = centerY - buildingHeight/2 + offset;
+                        break;
+                    case 2: // Bottom wall
+                        doorX = centerX - buildingWidth/2 + offset;
+                        doorY = centerY + buildingHeight/2 - doorHeight;
+                        break;
+                    case 3: // Left wall
+                        doorX = centerX - buildingWidth/2;
+                        doorY = centerY - buildingHeight/2 + offset;
+                        break;
+                }
+                
+                // Color based on compliance
+                ctx.fillStyle = door.is_compliant ? '#10b981' : '#ef4444';
+                ctx.fillRect(doorX, doorY, doorWidth, doorHeight);
+                
+                // Door outline
+                ctx.strokeStyle = '#374151';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(doorX, doorY, doorWidth, doorHeight);
+                
+                // Door label
+                ctx.fillStyle = '#1f2937';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(
+                    `${door.width || 'N/A'}"`, 
+                    doorX + doorWidth/2, 
+                    doorY + doorHeight + 15
+                );
+            });
+        }
+        
+        // Add title
+        ctx.fillStyle = '#1f2937';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+            ifcData.project_name || 'Building Model', 
+            centerX, 
+            30
+        );
+        
+        // Add legend
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(20, canvas.height - 60, 15, 15);
+        ctx.fillStyle = '#1f2937';
+        ctx.fillText('Compliant doors', 45, canvas.height - 48);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(20, canvas.height - 35, 15, 15);
+        ctx.fillStyle = '#1f2937';
+        ctx.fillText('Non-compliant doors', 45, canvas.height - 23);
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            canvas.width = viewerContainer.clientWidth;
+            canvas.height = viewerContainer.clientHeight;
+            // Redraw would happen here
         });
         
-        doorInfo.appendChild(doorList);
-    } else {
-        const noDoors = document.createElement('p');
-        noDoors.className = 'text-slate-500 dark:text-slate-400';
-        noDoors.textContent = 'No door information available';
-        doorInfo.appendChild(noDoors);
+        // Show viewer controls
+        const controls = document.getElementById('viewerControls');
+        if (controls) controls.classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Fallback viewer failed:', error);
+        
+        // Last resort - simple text display
+        const viewerContainer = document.getElementById('viewer');
+        viewerContainer.innerHTML = `
+            <div class="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <div class="text-center p-6">
+                    <div class="text-6xl mb-4">🏢</div>
+                    <h3 class="text-xl font-bold mb-2">${ifcData?.project_name || 'Building Model'}</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Found ${ifcData?.doors?.length || 0} doors
+                    </p>
+                    <div class="text-sm text-gray-500">
+                        ${ifcData?.doors?.filter(d => d.is_compliant).length || 0} compliant • 
+                        ${ifcData?.doors?.filter(d => !d.is_compliant).length || 0} non-compliant
+                    </div>
+                </div>
+            </div>
+        `;
     }
-    
-    fallbackDiv.appendChild(doorInfo);
-    
-    // Add help message
-    const helpMessage = document.createElement('p');
-    helpMessage.className = 'text-sm text-slate-500 dark:text-slate-400 text-center';
-    helpMessage.textContent = 'Using simplified viewer mode. The full 3D viewer requires additional browser support.';
-    fallbackDiv.appendChild(helpMessage);
-    
-    // Add to container
-    viewerContainer.appendChild(fallbackDiv);
-    
-    // Show viewer controls
-    document.getElementById('viewerControls').classList.remove('hidden');
 }
