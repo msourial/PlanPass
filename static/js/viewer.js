@@ -417,7 +417,7 @@ function focusOnObject(object) {
 
 // Fallback to a simple viewer when 3D viewer fails
 function fallbackToSimpleViewer(ifcData) {
-    console.log("Using fallback viewer");
+    console.log("Using fallback viewer", ifcData);
     
     try {
         // Hide the placeholder message
@@ -553,19 +553,103 @@ function fallbackToSimpleViewer(ifcData) {
     } catch (error) {
         console.error('Fallback viewer failed:', error);
         
-        // Last resort - simple text display
+        // Create a visual building representation
         const viewerContainer = document.getElementById('viewer');
+        
+        // Calculate door statistics
+        const totalDoors = ifcData?.doors?.length || 0;
+        const compliantDoors = ifcData?.doors?.filter(d => d.is_compliant).length || 0;
+        const nonCompliantDoors = totalDoors - compliantDoors;
+        
         viewerContainer.innerHTML = `
-            <div class="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <div class="text-center p-6">
-                    <div class="text-6xl mb-4">🏢</div>
-                    <h3 class="text-xl font-bold mb-2">${ifcData?.project_name || 'Building Model'}</h3>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4">
-                        Found ${ifcData?.doors?.length || 0} doors
-                    </p>
-                    <div class="text-sm text-gray-500">
-                        ${ifcData?.doors?.filter(d => d.is_compliant).length || 0} compliant • 
-                        ${ifcData?.doors?.filter(d => !d.is_compliant).length || 0} non-compliant
+            <div class="h-full bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-6 flex flex-col">
+                <!-- Building Header -->
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">
+                        ${ifcData?.project_name || 'Building Model'}
+                    </h3>
+                    <div class="flex justify-center items-center gap-6 text-sm">
+                        <div class="bg-white dark:bg-slate-700 px-3 py-1 rounded-full">
+                            <span class="font-medium">Total Doors:</span> ${totalDoors}
+                        </div>
+                        <div class="bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
+                            <span class="font-medium text-green-800 dark:text-green-200">Compliant:</span> ${compliantDoors}
+                        </div>
+                        <div class="bg-red-100 dark:bg-red-900 px-3 py-1 rounded-full">
+                            <span class="font-medium text-red-800 dark:text-red-200">Non-compliant:</span> ${nonCompliantDoors}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Visual Building -->
+                <div class="flex-1 flex items-center justify-center">
+                    <div class="relative">
+                        <!-- Building outline -->
+                        <div class="w-80 h-60 bg-gray-200 dark:bg-gray-600 border-4 border-gray-400 dark:border-gray-500 relative">
+                            <!-- Building label -->
+                            <div class="absolute top-2 left-2 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                Building Floor Plan
+                            </div>
+                            
+                            <!-- Doors around perimeter -->
+                            ${ifcData?.doors ? ifcData.doors.map((door, index) => {
+                                const side = index % 4;
+                                let position = '';
+                                let size = 'w-3 h-8';
+                                
+                                switch(side) {
+                                    case 0: // Top
+                                        position = `top-0 left-${20 + (index * 15) % 60}`;
+                                        size = 'w-8 h-3';
+                                        break;
+                                    case 1: // Right  
+                                        position = `right-0 top-${10 + (index * 12) % 40}`;
+                                        break;
+                                    case 2: // Bottom
+                                        position = `bottom-0 left-${20 + (index * 15) % 60}`;
+                                        size = 'w-8 h-3';
+                                        break;
+                                    case 3: // Left
+                                        position = `left-0 top-${10 + (index * 12) % 40}`;
+                                        break;
+                                }
+                                
+                                return `
+                                    <div class="absolute ${position} ${size} ${door.is_compliant ? 'bg-green-500' : 'bg-red-500'} 
+                                               border border-gray-700 flex items-center justify-center group cursor-pointer"
+                                         title="Door ${door.id}: ${door.width || 'N/A'} inches">
+                                        <span class="text-white text-xs font-bold">${door.width || '?'}"</span>
+                                    </div>
+                                `;
+                            }).join('') : ''}
+                        </div>
+                        
+                        <!-- Legend -->
+                        <div class="mt-4 flex justify-center gap-4 text-sm">
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-green-500 rounded"></div>
+                                <span>Compliant (≥32")</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-red-500 rounded"></div>
+                                <span>Non-compliant (<32")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Door List -->
+                <div class="mt-4 bg-white dark:bg-slate-700 rounded-lg p-4 max-h-32 overflow-y-auto">
+                    <h4 class="font-bold mb-2 text-slate-800 dark:text-white">Door Details:</h4>
+                    <div class="grid grid-cols-2 gap-1 text-xs">
+                        ${ifcData?.doors ? ifcData.doors.map(door => `
+                            <div class="flex justify-between items-center py-1 px-2 rounded ${door.is_compliant ? 'bg-green-50 dark:bg-green-900' : 'bg-red-50 dark:bg-red-900'}">
+                                <span class="font-medium">${door.name || `Door ${door.id}`}</span>
+                                <span class="${door.is_compliant ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}">
+                                    ${door.width || 'N/A'}"
+                                </span>
+                            </div>
+                        `).join('') : '<p class="text-gray-500">No door data available</p>'}
                     </div>
                 </div>
             </div>
