@@ -21,8 +21,71 @@ function populateReport(complianceResults, reportHash) {
     // Non-compliant doors table
     updateNonCompliantDoorsTable(complianceResults.doors?.non_compliant || []);
     
-    // Add building visualization to report
-    addBuildingVisualization(complianceResults);
+    // Add building visualization directly to report
+    const reportContent = document.getElementById('reportContent');
+    
+    // Remove existing visualization if any
+    const existingViz = document.getElementById('buildingVisualizationReport');
+    if (existingViz) {
+        existingViz.remove();
+    }
+    
+    // Get all doors from compliance results
+    const allDoors = [];
+    if (complianceResults.doors?.compliant) {
+        allDoors.push(...complianceResults.doors.compliant.map(d => ({...d, is_compliant: true})));
+    }
+    if (complianceResults.doors?.non_compliant) {
+        allDoors.push(...complianceResults.doors.non_compliant.map(d => ({...d, is_compliant: false})));
+    }
+    
+    // Create building visualization if we have doors
+    if (allDoors.length > 0) {
+        const vizElement = document.createElement('div');
+        vizElement.id = 'buildingVisualizationReport';
+        vizElement.className = 'p-4 border border-slate-200 dark:border-slate-700 rounded-lg mt-6';
+        
+        vizElement.innerHTML = `
+            <h4 class="font-bold text-lg mb-4 flex items-center">
+                <i class="fas fa-building text-blue-500 mr-2"></i>
+                Building Floor Plan Visualization
+            </h4>
+            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center;">
+                <h5 style="margin-bottom: 15px; color: #374151; font-weight: bold;">Building Layout - ${allDoors.length} Doors Found</h5>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 500px; margin: 0 auto 20px;">
+                    ${allDoors.map((door, index) => {
+                        const widthInches = door.width ? Math.round(door.width) : 30;
+                        const bgColor = door.is_compliant ? '#10b981' : '#ef4444';
+                        
+                        return `
+                            <div style="background: ${bgColor}; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; cursor: pointer; transition: transform 0.2s;" 
+                                 title="${door.name || `Door ${door.id}`}: ${widthInches} inches - ${door.is_compliant ? 'Compliant' : 'Non-compliant'}"
+                                 onmouseover="this.style.transform='scale(1.05)'"
+                                 onmouseout="this.style.transform='scale(1)'">
+                                ${widthInches}"
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="display: flex; justify-content: center; gap: 25px; font-size: 14px; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 18px; height: 18px; background: #10b981; border-radius: 4px;"></div>
+                        <span style="font-weight: 500;">Compliant (≥32")</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 18px; height: 18px; background: #ef4444; border-radius: 4px;"></div>
+                        <span style="font-weight: 500;">Non-compliant (<32")</span>
+                    </div>
+                </div>
+                <div style="background: #e0f2fe; border: 1px solid #81d4fa; border-radius: 6px; padding: 12px; font-size: 13px; color: #0277bd;">
+                    <strong>Visual Analysis:</strong> Each door is positioned in the building layout with width measurements. 
+                    Hover over doors to see detailed information including compliance status.
+                </div>
+            </div>
+        `;
+        
+        reportContent.appendChild(vizElement);
+    }
     
     // Verification hash
     document.getElementById('verificationHash').textContent = reportHash || 'Not generated';
