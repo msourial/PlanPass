@@ -21,6 +21,9 @@ function populateReport(complianceResults, reportHash) {
     // Non-compliant doors table
     updateNonCompliantDoorsTable(complianceResults.doors?.non_compliant || []);
     
+    // Add building visualization to report
+    addBuildingVisualization(complianceResults);
+    
     // Verification hash
     document.getElementById('verificationHash').textContent = reportHash || 'Not generated';
 }
