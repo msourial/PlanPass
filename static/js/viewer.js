@@ -3,7 +3,7 @@ let viewer;
 let ifcModel;
 let highlightedItems = [];
 
-// Initialize the IFC.js viewer
+// Initialize the 3D viewer
 function initViewer(ifcData) {
     try {
         // Check if THREE.js is available
@@ -17,32 +17,66 @@ function initViewer(ifcData) {
         const viewerContainer = document.getElementById('viewer');
         viewerContainer.innerHTML = '';
         
-        // Check if IfcViewerAPI is available
-        if (typeof IfcViewerAPI === 'undefined') {
-            console.error("IfcViewerAPI is not available");
-            fallbackToSimpleViewer(ifcData);
-            return;
+        // Create a THREE.js scene directly
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf5f5f5);
+        
+        // Create camera
+        const camera = new THREE.PerspectiveCamera(75, viewerContainer.clientWidth / viewerContainer.clientHeight, 0.1, 1000);
+        camera.position.set(10, 10, 10);
+        camera.lookAt(0, 0, 0);
+        
+        // Create renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        viewerContainer.appendChild(renderer.domElement);
+        
+        // Add orbit controls if available
+        let controls = null;
+        if (typeof THREE.OrbitControls !== 'undefined') {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.25;
         }
         
-        // Create the viewer
-        const container = document.getElementById('viewer');
-        viewer = new IfcViewerAPI({ container, backgroundColor: new THREE.Color(0xf5f5f5) });
-        viewer.grid.setGrid();
-        viewer.axes.setAxes();
+        // Store in global viewer object
+        viewer = {
+            scene: scene,
+            camera: camera,
+            renderer: renderer,
+            controls: controls
+        };
         
-        // Setup camera and controls
-        viewer.context.ifcCamera.cameraControls.setPosition(10, 10, 10);
-        viewer.context.ifcCamera.cameraControls.setLookAt(0, 0, 0);
-        
-        // Load the IFC model (using the serialized data from backend)
+        // Load the IFC model data
         loadIFCModelData(ifcData);
+        
+        // Setup animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (controls) {
+                controls.update();
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = viewerContainer.clientWidth / viewerContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+        });
         
         // Setup viewer controls
         setupViewerControls();
         
     } catch (error) {
         console.error('Error initializing viewer:', error);
-        showToast('Error initializing 3D viewer', 'error');
+        fallbackToSimpleViewer(ifcData);
     }
 }
 
@@ -54,14 +88,6 @@ function loadIFCModelData(ifcData) {
         
         // Add lighting
         addLighting();
-        
-        // Render the scene
-        viewer.context.renderer.setAnimationLoop(() => {
-            viewer.context.renderer.render(
-                viewer.context.scene,
-                viewer.context.ifcCamera.perspectiveCamera
-            );
-        });
         
         // Mark viewer as loaded
         document.getElementById('viewer').classList.add('loaded');
@@ -96,7 +122,7 @@ function createRealistic3DModel(ifcData) {
             floorMaterial
         );
         floor.position.set(0, i * floorHeight, 0);
-        viewer.context.scene.add(floor);
+        viewer.scene.add(floor);
         
         // Add ceiling if not the top floor
         if (i < numFloors - 1) {
@@ -105,7 +131,7 @@ function createRealistic3DModel(ifcData) {
                 floorMaterial
             );
             ceiling.position.set(0, (i + 1) * floorHeight - 0.1, 0);
-            viewer.context.scene.add(ceiling);
+            viewer.scene.add(ceiling);
         }
         
         // Add walls
@@ -139,7 +165,7 @@ function createRealistic3DModel(ifcData) {
         
         walls.forEach(wall => {
             wall.userData = { type: 'wall', level: i };
-            viewer.context.scene.add(wall);
+            viewer.scene.add(wall);
         });
     }
     
@@ -178,8 +204,8 @@ function createRealistic3DModel(ifcData) {
             level: doorLevel
         };
         
-        viewer.context.scene.add(doorFrame);
-        viewer.context.scene.add(doorMesh);
+        viewer.scene.add(doorFrame);
+        viewer.scene.add(doorMesh);
     });
 }
 
