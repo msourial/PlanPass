@@ -186,6 +186,58 @@ button:focus, select:focus, input:focus {
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
 }
 
+/* Loading skeleton animations */
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) skewX(-12deg);
+    }
+    100% {
+        transform: translateX(200%) skewX(-12deg);
+    }
+}
+
+@keyframes progressFill {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite;
+}
+
+.animate-progress {
+    animation: progressFill 1.5s ease-in-out forwards;
+}
+
+/* Loading skeleton step styles */
+.loading-step.active .step-icon {
+    background-color: #3b82f6 !important;
+    color: white !important;
+}
+
+.loading-step.completed .step-icon {
+    background-color: #10b981 !important;
+    color: white !important;
+}
+
+.loading-step .step-text {
+    transition: color 0.3s ease;
+}
+
+.loading-step.active .step-text {
+    color: #374151 !important;
+    font-weight: 500;
+}
+
+.loading-step.completed .step-text {
+    color: #10b981 !important;
+    font-weight: 500;
+}
+
 /* Print styles */
 @media print {
     body {

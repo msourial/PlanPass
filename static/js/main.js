@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Show loading overlay
-        showLoading('Processing your files and checking compliance');
+        // Show loading skeleton instead of generic overlay
+        showViewerLoadingSkeleton();
         
         // Prepare form data
         const formData = new FormData();
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            hideLoading();
+            hideViewerLoadingSkeleton();
             
             if (data.success) {
                 // Hide placeholder and show viewer
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            hideLoading();
+            hideViewerLoadingSkeleton();
             console.error('Error:', error);
             showToast('An error occurred while processing the files', 'error');
         });
