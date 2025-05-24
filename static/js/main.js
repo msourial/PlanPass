@@ -372,3 +372,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Loading skeleton functions
+function showViewerLoadingSkeleton() {
+    const placeholder = document.getElementById('viewerPlaceholder');
+    const skeleton = document.getElementById('viewerLoadingSkeleton');
+    const viewer = document.getElementById('viewer');
+    
+    // Hide placeholder and viewer, show skeleton
+    placeholder.classList.add('hidden');
+    viewer.classList.add('hidden');
+    skeleton.classList.remove('hidden');
+    
+    // Start the animated progress sequence
+    setTimeout(() => updateLoadingStep(2), 1000);
+    setTimeout(() => updateLoadingStep(3), 2500);
+    setTimeout(() => updateLoadingStep(4), 4000);
+}
+
+function hideViewerLoadingSkeleton() {
+    const skeleton = document.getElementById('viewerLoadingSkeleton');
+    skeleton.classList.add('hidden');
+}
+
+function updateLoadingStep(stepNumber) {
+    const stepElement = document.getElementById(`step${stepNumber}`);
+    const progressElement = document.getElementById(`step${stepNumber}Progress`);
+    const iconElement = stepElement.querySelector('.w-6.h-6');
+    const textElement = stepElement.querySelector('.text-sm');
+    
+    // Mark step as active
+    stepElement.classList.add('loading-step', 'active');
+    
+    // Update icon and text colors
+    iconElement.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+    iconElement.classList.add('bg-blue-500');
+    iconElement.querySelector('i').classList.remove('text-slate-500');
+    iconElement.querySelector('i').classList.add('text-white');
+    
+    textElement.classList.remove('text-slate-400');
+    textElement.classList.add('text-slate-600', 'dark:text-slate-400');
+    
+    // Animate progress bar
+    progressElement.style.width = '100%';
+    
+    // Mark as completed after animation
+    setTimeout(() => {
+        stepElement.classList.remove('active');
+        stepElement.classList.add('completed');
+        
+        iconElement.classList.remove('bg-blue-500');
+        iconElement.classList.add('bg-green-500');
+        
+        textElement.classList.remove('text-slate-600', 'dark:text-slate-400');
+        textElement.classList.add('text-green-600', 'dark:text-green-400');
+        
+        // Add checkmark
+        const checkIcon = iconElement.querySelector('i');
+        checkIcon.className = 'fas fa-check text-white text-xs';
+    }, 1200);
+}
