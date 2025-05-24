@@ -254,16 +254,16 @@ function calculateDoorPosition(wallIndex, doorWidth, floorLevel, buildingWidth, 
 function addLighting() {
     // Add ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    viewer.context.scene.add(ambientLight);
+    viewer.scene.add(ambientLight);
     
     // Add directional light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(5, 10, 7.5);
-    viewer.context.scene.add(directionalLight);
+    viewer.scene.add(directionalLight);
     
     // Add hemisphere light
     const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x303030, 0.5);
-    viewer.context.scene.add(hemisphereLight);
+    viewer.scene.add(hemisphereLight);
 }
 
 // Setup viewer controls
@@ -275,18 +275,25 @@ function setupViewerControls() {
     
     // Reset view
     resetViewBtn.addEventListener('click', () => {
-        viewer.context.ifcCamera.cameraControls.setPosition(10, 10, 10);
-        viewer.context.ifcCamera.cameraControls.setLookAt(0, 0, 0);
+        viewer.camera.position.set(10, 10, 10);
+        viewer.camera.lookAt(0, 0, 0);
+        if (viewer.controls) {
+            viewer.controls.reset();
+        }
     });
     
     // Zoom out
     zoomOutBtn.addEventListener('click', () => {
-        viewer.context.ifcCamera.cameraControls.dollyOut(1.2);
+        const currentDistance = viewer.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+        const newDistance = currentDistance * 1.2;
+        viewer.camera.position.multiplyScalar(newDistance / currentDistance);
     });
     
     // Zoom in
     zoomInBtn.addEventListener('click', () => {
-        viewer.context.ifcCamera.cameraControls.dollyIn(1.2);
+        const currentDistance = viewer.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+        const newDistance = currentDistance * 0.8;
+        viewer.camera.position.multiplyScalar(newDistance / currentDistance);
     });
     
     // Element filtering
