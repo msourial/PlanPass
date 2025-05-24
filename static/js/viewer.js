@@ -3,15 +3,20 @@ let viewer;
 let ifcModel;
 let highlightedItems = [];
 
-// Initialize the 3D viewer
+// Initialize the viewer (now using simple 2D approach)
 function initViewer(ifcData) {
     console.log("Initializing viewer with data:", ifcData);
     
-    // Force show building data immediately
-    const viewerContainer = document.getElementById('viewer');
-    const viewerPlaceholder = document.getElementById('viewerPlaceholder');
+    if (!ifcData || !ifcData.building_elements) {
+        console.error('No IFC data provided');
+        return;
+    }
+    
+    // Use the reliable 2D viewer
+    initSimpleViewer(ifcData);
     
     // Hide placeholder completely
+    const viewerPlaceholder = document.getElementById('viewerPlaceholder');
     if (viewerPlaceholder) {
         viewerPlaceholder.style.display = 'none';
     }
