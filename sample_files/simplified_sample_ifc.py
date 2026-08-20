@@ -9,10 +9,10 @@ def create_simple_ifc():
     # Create header
     ifc_file.wrapped_data.header.file_name.name = "SampleBuilding"
     ifc_file.wrapped_data.header.file_name.time_stamp = "2025-05-20T12:00:00"
-    ifc_file.wrapped_data.header.file_name.author = ("BuildSat", "Sample Generator")
-    ifc_file.wrapped_data.header.file_name.organization = ("BuildSat", "Compliance Checking")
+    ifc_file.wrapped_data.header.file_name.author = ("PlanPass", "Sample Generator")
+    ifc_file.wrapped_data.header.file_name.organization = ("PlanPass", "Compliance Checking")
     ifc_file.wrapped_data.header.file_name.preprocessor_version = "IfcOpenShell"
-    ifc_file.wrapped_data.header.file_name.originating_system = "BuildSat"
+    ifc_file.wrapped_data.header.file_name.originating_system = "PlanPass"
     ifc_file.wrapped_data.header.file_name.authorization = "None"
     
     # Create basic units

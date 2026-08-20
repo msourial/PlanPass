@@ -1,6 +1,16 @@
 // Report generation module
 let reportData = null;
 
+// Escape HTML in values that originate from uploaded model data
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Populate the report with compliance results
 function populateReport(complianceResults, reportHash) {
     reportData = complianceResults;
@@ -54,12 +64,12 @@ function populateReport(complianceResults, reportHash) {
                 <h5 style="margin-bottom: 15px; color: #374151; font-weight: bold;">Building Layout - ${allDoors.length} Doors Found</h5>
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 500px; margin: 0 auto 20px;">
                     ${allDoors.map((door, index) => {
-                        const widthInches = door.width ? Math.round(door.width) : 30;
+                        const widthInches = door.width_in || Math.round((door.width || 0.762) * 39.3701);
                         const bgColor = door.is_compliant ? '#10b981' : '#ef4444';
                         
                         return `
                             <div style="background: ${bgColor}; color: white; padding: 15px 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; cursor: pointer; transition: transform 0.2s;" 
-                                 title="${door.name || `Door ${door.id}`}: ${widthInches} inches - ${door.is_compliant ? 'Compliant' : 'Non-compliant'}"
+                                 title="${escapeHtml(door.name || `Door ${door.id}`)}: ${widthInches} inches - ${door.is_compliant ? 'Compliant' : 'Non-compliant'}"
                                  onmouseover="this.style.transform='scale(1.05)'"
                                  onmouseout="this.style.transform='scale(1)'">
                                 ${widthInches}"
@@ -154,19 +164,19 @@ function updateNonCompliantDoorsTable(nonCompliantDoors) {
         
         const doorName = door.name || `Door-${door.id}`;
         const location = door.level || 'Unknown';
-        const width = door.width ? `${door.width} in` : 'Unknown';
+        const width = door.width_in || door.width ? `${door.width_in || door.width} in` : 'Unknown';
         const requiredWidth = reportData.building_code?.min_door_width || 32;
         const issue = door.compliance_message || 'Door width below minimum requirement';
         
         row.innerHTML = `
             <td class="px-4 py-3 whitespace-nowrap">
-                <div class="font-medium text-slate-900 dark:text-slate-100">${doorName}</div>
-                <div class="text-sm text-slate-500 dark:text-slate-400">ID: ${door.id}</div>
+                <div class="font-medium text-slate-900 dark:text-slate-100">${escapeHtml(doorName)}</div>
+                <div class="text-sm text-slate-500 dark:text-slate-400">ID: ${escapeHtml(door.id)}</div>
             </td>
-            <td class="px-4 py-3 whitespace-nowrap">${location}</td>
-            <td class="px-4 py-3 whitespace-nowrap font-medium text-red-500">${width}</td>
-            <td class="px-4 py-3 whitespace-nowrap">≥ ${requiredWidth} in</td>
-            <td class="px-4 py-3">${issue}</td>
+            <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(location)}</td>
+            <td class="px-4 py-3 whitespace-nowrap font-medium text-red-500">${escapeHtml(width)}</td>
+            <td class="px-4 py-3 whitespace-nowrap">≥ ${escapeHtml(requiredWidth)} in</td>
+            <td class="px-4 py-3">${escapeHtml(issue)}</td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <button class="text-blue-500 hover:text-blue-700 transition-colors focus-door-btn" data-door-id="${door.id}">
                     <i class="fas fa-search mr-1"></i> View
@@ -186,29 +196,9 @@ function updateNonCompliantDoorsTable(nonCompliantDoors) {
     });
 }
 
-// Focus on a specific door in the 3D viewer
+// Focus on a specific door in the 2D viewer
 function focusOnDoorById(doorId) {
-    // Scroll to viewer section
-    document.getElementById('viewerContainer').scrollIntoView({ behavior: 'smooth' });
-    
-    // Find and highlight the door
-    let found = false;
-    
-    // Clear existing highlights
-    clearHighlights();
-    
-    // Find and highlight the specific door
-    viewer.context.scene.traverse((object) => {
-        if (object.userData && object.userData.type === 'door' && object.userData.id == doorId) {
-            highlightObject(object, 0xEF4444); // Red color
-            focusOnObject(object);
-            found = true;
-        }
-    });
-    
-    if (!found) {
-        showToast('Door not found in the model', 'error');
-    }
+    viewerFocusOnDoor(doorId);
 }
 
 // Generate PDF report
@@ -235,7 +225,7 @@ function generatePdfReport() {
     // Add report header
     doc.setFontSize(24);
     doc.setTextColor(59, 130, 246); // Blue
-    doc.text('BuildSat Compliance Report', 105, 20, {align: 'center'});
+    doc.text('PlanPass Compliance Report', 105, 20, {align: 'center'});
     
     // Add date
     doc.setFontSize(10);
@@ -342,7 +332,7 @@ function generatePdfReport() {
             
             const doorName = door.name || `Door-${door.id}`;
             const location = door.level || 'Unknown';
-            const width = door.width ? `${door.width} in` : 'Unknown';
+            const width = door.width_in || door.width ? `${door.width_in || door.width} in` : 'Unknown';
             const issue = door.compliance_message || 'Width below minimum requirement';
             
             doc.setFontSize(11);
@@ -382,13 +372,13 @@ function generatePdfReport() {
     doc.setTextColor(150, 150, 150);
     doc.text('Verification QR Code', 105, 80, {align: 'center'});
     
-    // Add BuildSat footer
+    // Add PlanPass footer
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text('© BuildSat - Building Compliance Analysis Tool', 105, 280, {align: 'center'});
+    doc.text('© PlanPass - Building Compliance Analysis Tool', 105, 280, {align: 'center'});
     
     // Save the PDF
-    doc.save(`BuildSat_Compliance_Report_${reportData.project_name || 'Project'}.pdf`);
+    doc.save(`PlanPass_Compliance_Report_${reportData.project_name || 'Project'}.pdf`);
     
     // Hide loading overlay
     hideLoading();

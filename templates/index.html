@@ -4,8 +4,22 @@
 <div class="mb-8">
     <h2 class="text-3xl font-bold mb-2">Building Code Compliance Analysis</h2>
     <p class="text-slate-600 dark:text-slate-400">
-        Upload your IFC building model and building code PDF to check if your doors comply with Texas width regulations.
+        Upload your IFC building model and Texas zip code. PlanPass checks your doors against local
+        width regulations and produces a verifiable compliance report.
     </p>
+    <div class="flex flex-wrap items-center gap-2 mt-4 text-sm text-slate-500 dark:text-slate-400">
+        <span class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1">
+            <i class="fas fa-upload text-blue-500"></i> Upload IFC model
+        </span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1">
+            <i class="fas fa-map-marker-alt text-blue-500"></i> Enter Texas zip code
+        </span>
+        <i class="fas fa-chevron-right text-xs"></i>
+        <span class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1">
+            <i class="fas fa-clipboard-check text-green-500"></i> Get compliance report
+        </span>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -60,7 +74,7 @@
                     <div>
                         <h4 class="font-medium mb-1">Building Code Selection</h4>
                         <p class="text-sm text-slate-600 dark:text-slate-400">
-                            BuildSat automatically applies the correct building codes based on your zip code:
+                            PlanPass automatically applies the correct building codes based on your zip code:
                         </p>
                         <ul class="text-sm text-slate-600 dark:text-slate-400 mt-2 space-y-1">
                             <li>• National Building Code (IBC) standards</li>
@@ -76,14 +90,26 @@
                 <i class="fas fa-check-circle mr-2"></i>
                 Check Compliance
             </button>
+            
+            <div class="flex items-center gap-3">
+                <div class="flex-1 border-t border-slate-200 dark:border-slate-700"></div>
+                <span class="text-xs text-slate-400 uppercase tracking-wider">or</span>
+                <div class="flex-1 border-t border-slate-200 dark:border-slate-700"></div>
+            </div>
+            
+            <!-- Sample Model Button -->
+            <button type="button" id="sampleModelBtn" class="w-full py-3 px-4 border-2 border-blue-500 text-blue-600 dark:text-blue-400 font-medium rounded-lg transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center">
+                <i class="fas fa-flask mr-2"></i>
+                Try Sample Model
+            </button>
         </form>
     </div>
     
-    <!-- 3D Viewer Panel -->
+    <!-- Model Viewer Panel -->
     <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 lg:col-span-2">
         <h3 class="text-xl font-bold mb-4 flex items-center">
             <i class="fas fa-cube text-blue-500 mr-2"></i>
-            3D Model Viewer
+            Model Viewer
         </h3>
         
         <div id="viewerContainer" class="w-full h-[600px] bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
@@ -175,29 +201,20 @@
             </div>
             
             <!-- Default Placeholder -->
-            <div id="viewerPlaceholder" class="text-center">
+            <div id="viewerPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center">
                 <i class="fas fa-cube text-slate-400 text-5xl mb-4"></i>
-                <p class="text-slate-600 dark:text-slate-400">Upload an IFC file to view the 3D model</p>
+                <p class="text-slate-600 dark:text-slate-400">Upload an IFC file to view the model</p>
             </div>
         </div>
         
         <div id="viewerControls" class="mt-4 flex flex-wrap items-center gap-3 hidden">
-            <button class="py-2 px-4 bg-slate-200 dark:bg-slate-700 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+            <button id="resetViewBtn" class="py-2 px-4 bg-slate-200 dark:bg-slate-700 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
                 <i class="fas fa-home mr-1"></i> Reset View
             </button>
-            <div class="flex items-center border border-slate-300 dark:border-slate-600 rounded overflow-hidden">
-                <button class="py-2 px-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <span class="py-2 px-3 bg-white dark:bg-slate-800">Zoom</span>
-                <button class="py-2 px-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
             <div class="ml-auto">
-                <select class="py-2 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded">
-                    <option value="all">Show All Elements</option>
-                    <option value="doors">Doors Only</option>
+                <select id="elementFilter" class="py-2 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded">
+                    <option value="all">Show All Doors</option>
+                    <option value="compliant">Compliant Only</option>
                     <option value="non-compliant">Non-compliant Only</option>
                 </select>
             </div>
@@ -316,11 +333,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="/static/js/main.js"></script>
-<script src="/static/js/simple_viewer.js"></script>
-<script src="/static/js/viewer.js"></script>
-<script src="/static/js/report.js"></script>
 {% endblock %}

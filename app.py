@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Create the Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "buildsat-dev-secret")
+app.secret_key = os.environ.get("SESSION_SECRET", "planpass-dev-secret")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure upload settings

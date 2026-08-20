@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuildSat - Building Compliance Analysis</title>
+    <title>PlanPass - Building Compliance Analysis</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,27 +15,15 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/styles.css">
     
-    <!-- THREE.js for 3D visualization -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
-    
-    <!-- IFC.js for IFC file handling -->
-    <script src="https://unpkg.com/web-ifc-viewer@1.0.213/dist/bundle.js"></script>
-    <script src="https://unpkg.com/web-ifc@0.0.43/dist/web-ifc-api.js"></script>
-    
     <!-- jsPDF for report generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- CryptoJS for hash verification -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300">
     <header class="bg-white dark:bg-slate-800 shadow-md">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center">
-                <img src="/static/images/buildsat-logo.svg" alt="BuildSat Logo" class="h-10 mr-3">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 text-transparent bg-clip-text">BuildSat</h1>
+                <img src="/static/images/planpass-logo.svg" alt="PlanPass Logo" class="h-10 mr-3">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 text-transparent bg-clip-text">PlanPass</h1>
             </div>
             <div class="flex items-center">
                 <button id="darkModeToggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
@@ -52,7 +40,7 @@
     
     <footer class="bg-white dark:bg-slate-800 mt-10 py-6 border-t border-slate-200 dark:border-slate-700">
         <div class="container mx-auto px-4 text-center">
-            <p>&copy; 2023 BuildSat - Building Compliance Analysis Tool</p>
+            <p>&copy; 2026 PlanPass - Building Compliance Analysis Tool</p>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
                 Helping architects and builders ensure code compliance
             </p>
@@ -127,6 +115,9 @@
     
     <!-- Load custom scripts -->
     <script src="/static/js/animation.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/viewer.js"></script>
+    <script src="/static/js/report.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

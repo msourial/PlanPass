@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
-FILE_NAME('SampleBuilding','2025-05-20T12:00:00',('BuildSat','Sample Generator'),('BuildSat','Compliance Checking'),'IfcOpenShell','BuildSat','None');
+FILE_NAME('SampleBuilding','2025-05-20T12:00:00',('PlanPass','Sample Generator'),('PlanPass','Compliance Checking'),'IfcOpenShell','PlanPass','None');
 FILE_SCHEMA(('IFC4'));
 ENDSEC;
 DATA;

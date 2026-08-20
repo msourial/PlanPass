@@ -1,4 +1,4 @@
-/* BuildSat Custom Styles */
+/* PlanPass Custom Styles */
 
 /* Base styles */
 body {
@@ -83,12 +83,8 @@ button[type="submit"]:active:not(:disabled) {
     position: relative;
 }
 
+/* PlanPass viewer styles */
 #viewer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
     opacity: 0;
     transition: opacity 0.5s;
 }
@@ -97,17 +93,21 @@ button[type="submit"]:active:not(:disabled) {
     opacity: 1;
 }
 
-#viewerPlaceholder {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.5s;
+/* Door highlight animations */
+@keyframes doorFlash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+.door-element.non-compliant-flash rect {
+    animation: doorFlash 0.8s ease-in-out infinite;
+    stroke-width: 4px;
+}
+
+.door-element.door-focus rect {
+    stroke: #f59e0b;
+    stroke-width: 5px;
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
 }
 
 /* Report panel animations */

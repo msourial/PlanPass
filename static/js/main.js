@@ -26,6 +26,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
     initTooltips();
     
+    // Escape HTML in values rendered via innerHTML
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    
     // Handle IFC file input
     ifcDropzone.addEventListener('click', () => {
         ifcFileInput.click();
@@ -92,8 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 viewer.classList.remove('hidden');
                 viewerControls.classList.remove('hidden');
                 
-                // Initialize 3D viewer with IFC data
-                initViewer(data.ifc_data);
+                // Initialize 2D viewer with IFC data
+                initViewer(data.ifc_data, data.compliance_results, zipCode);
                 
                 // Show and populate report
                 reportPanel.classList.remove('hidden');
@@ -121,12 +131,65 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle view in model button
     viewInModelBtn.addEventListener('click', function() {
-        // Scroll to viewer section
-        document.getElementById('viewerContainer').scrollIntoView({ behavior: 'smooth' });
-        
-        // Highlight non-compliant doors in the viewer
         highlightNonCompliantDoors();
     });
+    
+    // Handle "Try Sample Model" button
+    const sampleModelBtn = document.getElementById('sampleModelBtn');
+    if (sampleModelBtn) {
+        sampleModelBtn.addEventListener('click', function() {
+            loadSampleModel();
+        });
+    }
+    
+    // Viewer controls
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    const elementFilter = document.getElementById('elementFilter');
+    if (resetViewBtn) {
+        resetViewBtn.addEventListener('click', () => resetView());
+    }
+    if (elementFilter) {
+        elementFilter.addEventListener('change', (e) => filterDoors(e.target.value));
+    }
+    
+    // Load the bundled sample model and run the analysis
+    function loadSampleModel() {
+        const btn = document.getElementById('sampleModelBtn');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading sample...';
+        
+        fetch('/static/sample_building.ifc')
+            .then(response => {
+                if (!response.ok) throw new Error('Sample file not found');
+                return response.blob();
+            })
+            .then(blob => {
+                const file = new File([blob], 'sample_building.ifc', { type: 'application/octet-stream' });
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                ifcFileInput.files = transfer.files;
+                
+                // Trigger file selection display
+                const changeEvent = new Event('change');
+                ifcFileInput.dispatchEvent(changeEvent);
+                
+                // Set a valid Texas zip code
+                zipCodeInput.value = '77001';
+                zipCodeInput.dispatchEvent(new Event('input'));
+                
+                // Auto-submit the form
+                uploadForm.dispatchEvent(new Event('submit'));
+            })
+            .catch(error => {
+                console.error('Error loading sample:', error);
+                showToast('Could not load sample model', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
+    }
     
     // Function to handle file selection
     function handleFileSelection(event, displayElement, iconClass, fileType) {
@@ -152,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update display with file name
             displayElement.innerHTML = `
-                <span class="font-medium text-blue-600 dark:text-blue-400">${file.name}</span>
+                <span class="font-medium text-blue-600 dark:text-blue-400">${escapeHtml(file.name)}</span>
                 <span class="text-slate-500 dark:text-slate-400 text-sm block mt-1">${formatFileSize(file.size)}</span>
             `;
             

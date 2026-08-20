@@ -6,6 +6,24 @@ import json
 
 logger = logging.getLogger(__name__)
 
+# IFC files store lengths in meters (per IfcSIUnit METRE); building codes
+# are expressed in inches. 1 meter = 39.3701 inches.
+INCHES_PER_METER = 39.3701
+
+def meters_to_inches(value):
+    """
+    Convert a length from meters to inches.
+
+    Args:
+        value (float): Length in meters
+
+    Returns:
+        float: Length in inches
+    """
+    if value is None:
+        return None
+    return round(float(value) * INCHES_PER_METER, 4)
+
 def process_ifc_file(file_path):
     """
     Process an IFC file and extract relevant data for compliance checking.
@@ -38,16 +56,20 @@ def process_ifc_file(file_path):
                 "guid": door.GlobalId,
                 "width": None,
                 "height": None,
+                "width_in": None,
+                "height_in": None,
                 "level": None,
                 "type": None,
                 "properties": {}
             }
             
-            # Get door dimensions
+            # Get door dimensions (IFC stores lengths in meters)
             if hasattr(door, "OverallWidth") and door.OverallWidth:
                 door_data["width"] = float(door.OverallWidth)
+                door_data["width_in"] = meters_to_inches(door_data["width"])
             if hasattr(door, "OverallHeight") and door.OverallHeight:
                 door_data["height"] = float(door.OverallHeight)
+                door_data["height_in"] = meters_to_inches(door_data["height"])
                 
             # Try to get dimensions from property sets
             if door_data["width"] is None or door_data["height"] is None:
@@ -65,8 +87,10 @@ def process_ifc_file(file_path):
                                         # Check for width/height properties
                                         if "width" in prop_name.lower() and door_data["width"] is None:
                                             door_data["width"] = float(prop_value)
+                                            door_data["width_in"] = meters_to_inches(door_data["width"])
                                         elif "height" in prop_name.lower() and door_data["height"] is None:
                                             door_data["height"] = float(prop_value)
+                                            door_data["height_in"] = meters_to_inches(door_data["height"])
             
             # Get door level
             for rel in ifc_file.get_inverse(door):
@@ -141,7 +165,10 @@ def check_door_compliance(ifc_data, building_codes):
         for door in doors:
             door_id = door.get("id")
             door_name = door.get("name")
-            door_width = door.get("width")
+            # Use inches when available (IFC stores raw values in meters)
+            door_width = door.get("width_in")
+            if door_width is None and door.get("width") is not None:
+                door_width = meters_to_inches(door["width"])
             
             # Set compliance status
             is_compliant = False
@@ -152,10 +179,10 @@ def check_door_compliance(ifc_data, building_codes):
                 compliance_message = "Door width information missing"
             elif door_width >= min_door_width:
                 is_compliant = True
-                compliance_message = f"Door width ({door_width}) meets minimum requirement ({min_door_width})"
+                compliance_message = f"Door width ({door_width} in) meets minimum requirement ({min_door_width} in)"
             else:
                 is_compliant = False
-                compliance_message = f"Door width ({door_width}) is less than minimum requirement ({min_door_width})"
+                compliance_message = f"Door width ({door_width} in) is less than minimum requirement ({min_door_width} in)"
             
             # Add compliance status to door data
             door_with_compliance = door.copy()
@@ -184,7 +211,7 @@ def check_door_compliance(ifc_data, building_codes):
                 "non_compliant": non_compliant_doors
             },
             "building_code": {
-                "source": "Texas Building Code",
+                "source": building_codes.get("source", "Texas Building Code"),
                 "min_door_width": min_door_width,
                 "requirements": building_codes.get("requirements", [])
             }
