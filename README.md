@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://planpass-gamma.vercel.app"><strong>🔗 Live demo → planpass-gamma.vercel.app</strong></a>
+</p>
+
+<p align="center">
   <a href="#overview">Overview</a> ·
   <a href="#features">Features</a> ·
   <a href="#how-it-works">How it works</a> ·
@@ -149,9 +153,18 @@ See `docs/tdd/planpass-fix.tdd.md` for the RED/GREEN evidence report.
 
 ## Deployment
 
-### Option A — Render (recommended, free)
+### Live site
 
-Render is the easiest free host for Flask: it deploys straight from this GitHub repo,
+**PlanPass is live at [https://planpass-gamma.vercel.app](https://planpass-gamma.vercel.app)** —
+deployed from this GitHub repo via Vercel. Push to `main` and Vercel redeploys automatically.
+
+> Note: the `planpass-gamma.vercel.app` alias is the stable production URL. The raw
+> deployment URLs (e.g. `planpass-<hash>-msourials-projects.vercel.app`) redirect to SSO
+> and are not meant to be shared.
+
+### Option A — Render (free, self-serve)
+
+Render is another easy free host for Flask: it deploys straight from this GitHub repo,
 auto-deploys on every push, and the free tier needs no credit card.
 
 **One-click (Blueprint):**
@@ -175,6 +188,16 @@ auto-deploys on every push, and the free tier needs no credit card.
 > Free-tier note: Render free web services sleep after ~15 minutes of inactivity;
 > the first request after a sleep takes ~30–60s to wake. Fine for demos and reviews.
 
+### Option B — Vercel (current host)
+
+The live deployment uses Vercel's Python runtime. `vercel.json` in the repo root defines the
+build (`@vercel/python` on `main.py`, `@vercel/static` for `static/**`). Redeploy with:
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
 ### Environment variables
 
 | Variable | Required | Description |
@@ -182,7 +205,7 @@ auto-deploys on every push, and the free tier needs no credit card.
 | `SESSION_SECRET` | No* | Flask session signing key. *Set a random value in production. |
 | `ANTHROPIC_API_KEY` | No | Enables Claude-based building-code extraction from PDFs. Falls back to built-in defaults when absent. |
 
-### Option B — Any Python host
+### Option C — Any Python host
 
 The app is a standard Flask app with no database and no external services. It runs on any
 host that can run `gunicorn main:app` — Railway, Fly.io, PythonAnywhere, a VPS, or a Docker
