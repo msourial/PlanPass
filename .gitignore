@@ -12,6 +12,8 @@ __pycache__/
 .agents/
 .local/
 .replit
+attached_assets/
+generated-icon.png
 
 # Runtime
 *.log
